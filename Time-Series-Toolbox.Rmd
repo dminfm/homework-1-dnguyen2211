@@ -33,7 +33,16 @@ For the following series, find an appropriate Box-Cox (?BoxCox) transformation i
 
 ```{r}
 # todo
- 
+
+autoplot(usnetelec)
+autoplot(usgdp)
+
+
+autoplot(mcopper)
+autoplot(BoxCox(mcopper, lambda= "auto"))
+
+autoplot(enplanements)
+autoplot(BoxCox(enplanements, lambda= "auto"))
 ```
 
 
@@ -43,9 +52,10 @@ Why is a Box-Cox transformation unhelpful for the `cangas` data?
 
 ```{r}
 # todo
- 
+autoplot(cangas)
+autoplot(BoxCox(cangas, lambda= "auto"))
 ```
-Your answer:
+Your answer: Trotz Transformation wurden ein ähnliches Ergebnis im Vergleich zum Original erzeugt.
 
 
 
@@ -74,18 +84,22 @@ Calculate the residuals (?residuals) from a seasonal naive forecast applied to t
 
 ```{r}
 # todo
- 
+?residuals
+fc <- residuals(snaive(beer))
+autoplot(fc)
 ```
 
 Test if the residuals are white noise and normally distributed.
 
 ```{r}
-#checkresiduals(fc)
+checkresiduals(fc)
 ```
 
 What do you conclude?
 
-Your answer:
+Your answer: 
+Das residual ist ein white noise, was auch erwartet wird.
+Das Residual ist Normalverteilt.
 
 
 # Exercise 5
@@ -94,11 +108,11 @@ Are the following statements true or false? Explain your answer.
 
 > a. Good forecast methods should have normally distributed residuals.
 
-Your answer:
+Your answer: true
 
 > b. A model with small residuals will give good forecasts.
 
-Your answer:
+Your answer: true
 
 > c. The best measure of forecast accuracy is MAPE.
 
@@ -106,7 +120,7 @@ Your answer:
 
 > d. If your model doesn't forecast well, you should make it more complicated.
 
-Your answer:
+Your answer: False, das Model könnte das falsche für das Problem sein
 
 > e. Always choose the model with the best forecast accuracy as measured on the test set.
 
@@ -137,7 +151,7 @@ Calculate forecasts using `snaive` applied to `myts.train`.
 
 ```{r}
 # todo
- 
+ trainfit <- snaive(myts.train)
 ```
 
 Compare the accuracy of your forecasts against the actual values stored in `myts.test`.
@@ -145,7 +159,7 @@ Compare the accuracy of your forecasts against the actual values stored in `myts
 
 ```{r}
 # todo
- 
+ accuracy(trainfit, myts.test)
 ```
 
 The number to look at here is the test set RMSE of 71.443. That provides a benchmark for comparison when we try other models.
@@ -154,10 +168,10 @@ Check the residuals. Do the residuals appear to be uncorrelated and normally dis
 
 ```{r}
 # todo
- 
+ checkresiduals(myts.test)
 ```
 
-Your answer:
+Your answer: Nicht normalverteilt 
 
 
 How sensitive are the accuracy measures to the training/test split?
@@ -179,7 +193,9 @@ Compute one year of forecasts for each training set using the `snaive()` method.
 
 ```{r}
 # todo
- 
+fc1 <- snaive(train1)
+fc2 <- snaive(train2)
+fc3 <- snaive(train3)
 ```
 
 Use `accuracy()` to compare the MAPE over the three test sets. Comment on these.
@@ -187,8 +203,11 @@ First we will copy the actual data into a variable. Then we can do an accuracy c
 
 ```{r}
 qld <- visnights[, "QLDMetro"]
+
 # todo
- 
+accuracy(fc1, qld)
+accuracy(fc2, qld)
+accuracy(fc3, qld)
 ```
 
 This should give similar results to this consolidated results table.
@@ -211,7 +230,7 @@ Produce a time plot of the series.
 
 ```{r}
 # todo
- 
+autoplot(dowjones) 
 ```
 
 Produce forecasts using the drift method and plot them.
@@ -221,7 +240,8 @@ Let's assume we want to forecast the next 5, 10 and 15 values.
 ```{r}
 dowfc1 <- rwf(dowjones, drift=TRUE, h=5)
 # todo
- 
+dowfc2 <- rwf(dowjones, drift=TRUE, h=10) 
+dowfc3 <- rwf(dowjones, drift=TRUE, h=15) 
 ```
 
 Then we can plot these values.
@@ -258,7 +278,29 @@ The time series isn't seasonal, so the seasonal naive method is not viable. Howe
 
 ```{r}
 # todo
- 
+ donaive1 <- naive(dowjones, h=5)
+donaive2 <- naive(dowjones, h=10) 
+donaive3 <- naive(dowjones, h=15) 
+
+domeanf1 <- meanf(dowjones, h=5)
+domeanf2 <- meanf(dowjones, h=10) 
+domeanf3 <- meanf(dowjones, h=15) 
+
+autoplot(dowjones) +
+  autolayer(donaive3, PI=FALSE, series="Naive 15") +
+  autolayer(donaive2, PI=FALSE, series="Naive 10") +
+  autolayer(donaive1, PI=FALSE, series="Naive 5") +
+  xlab("Time") + ylab("Closing Price (US$)") +
+  ggtitle("Dow Jones index") +
+  guides(colour=guide_legend(title="Forecast"))
+
+autoplot(dowjones) +
+  autolayer(domeanf3, PI=FALSE, series="meanf 15") +
+  autolayer(domeanf2, PI=FALSE, series="meanf 10") +
+  autolayer(domeanf1, PI=FALSE, series="meanf 5") +
+  xlab("Time") + ylab("Closing Price (US$)") +
+  ggtitle("Dow Jones index") +
+  guides(colour=guide_legend(title="Forecast"))
 ```
 
 The three values will be very different here. The Mean will use the data set, so is unlikely to follow the current trendline.
@@ -271,14 +313,22 @@ Produce some plots of the data in order to become familiar with it.
 
 ```{r}
 # todo
- 
+ autoplot(ibmclose)
+gglagplot(ibmclose)
+ggAcf(ibmclose)
 ```
 
 Split the data into a training set of 300 observations and a test set of 69 observations.
 
 ```{r}
 # todo
- 
+# todo
+ibm.test <- window(ibmclose, start = 300)
+ibm.train <- window(ibmclose, end = c(300, 69))
+
+autoplot(ibmclose) +
+  autolayer(ibm.train, series="Training") +
+  autolayer(ibm.test, series="Test") 
 ```
 
 Try using various benchmark methods to forecast the training set and compare the results on the test set. Which method did best?
@@ -289,7 +339,9 @@ h <- length(ibm.test)
 m.f <- meanf(ibm.train, h=h)
 # todo
  
-
+ 
+rw.f <-naive(ibm.train, h=h)
+rwd.f <- rwf(ibm.train, drift=TRUE, h=h)
 
 autoplot(ibmclose) +
   xlab("Day") +
@@ -300,7 +352,8 @@ autoplot(ibmclose) +
 
 # accuracy(m.f,ibm.test)
 # todo
- 
+accuracy(rw.f,ibm.test)
+accuracy(rwd.f,ibm.test) 
 ```
 
 
@@ -308,7 +361,7 @@ Check the residuals of your preferred method. Do they resemble white noise?
 
 ```{r}
 # todo
- 
+ checkresiduals(rw.f) 
 ```
 
 
@@ -320,21 +373,46 @@ Produce some plots of the data in order to become familiar with it.
 
 ```{r}
 # todo
- 
+
+autoplot(hsales)
+ggseasonplot(hsales, polar=TRUE)
+ggsubseriesplot(hsales)
+gglagplot(hsales)
+ggAcf(hsales)
 ```
 
 Split the `hsales` data set into a training set and a test set, where the test set is the last two years of data.
 
 ```{r}
 # todo
- 
+ hsales.test <- window(hsales, start = c(1994, 2))
+hsales.train <- window(hsales, end = 1994)
+
+autoplot(hsales) +
+  autolayer(hsales.train, series="Training") +
+  autolayer(hsales.test, series="Test")
 ```
 
 Try using various benchmark methods to forecast the training set and compare the results on the test set. Which method did best?
 
 ```{r}
 # todo
- 
+ h <- length(hsales.test)
+
+hsalesm.f <- meanf(hsales.train, h=h)
+hsalesrw.f <- naive(hsales.train, h=h)
+hsalesrwd.f <- rwf(hsales.train, drift=TRUE, h=h)
+hsalesrwds.f <- snaive(hsales.train, h=h)
+
+autoplot(hsales) +
+  xlab("Day") +
+  ggtitle("hsales") +
+  autolayer(hsalesm.f$mean, col=2, series="Mean method") +
+  autolayer(hsalesrw.f$mean, col=3, series="Naive method") +
+  autolayer(hsalesrwd.f$mean, col=4, series="Drift method") + 
+  autolayer(hsalesrwds.f$mean, col=5, series="SNaive method")
+
+```
 ```
 
 In terms of accuracy measures on the test set, the seasonal naive method does better.
